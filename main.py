@@ -1,6 +1,5 @@
 import maintenance_tasks as maintenance
 import random
-import random
 from utilities import typewriter_effect, create_menu_table
 
 # List of themed quotes
@@ -46,10 +45,9 @@ def main():
         selection = int(input("Select an option (1-2):\n"))
         
         if selection == 1:
-            password = input("Enter your super user password: ")
             # Placeholder for actual function call
-            typewriter_effect(f"Running Nihility System Tweaks with password: {password}")
-            # maintenance.maintenance_tasks(password)  # Uncomment to use actual functionality
+            typewriter_effect(f"Running Nihility System Tweaks")
+            maintenance.maintenance_tasks()
         elif selection == 2:
             typewriter_effect("Thank you for using Nihility System Tweaks. Goodbye!")
             break
