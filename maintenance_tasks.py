@@ -1,3 +1,22 @@
+import subprocess
+import getpass
+
+# Get user password
+password = getpass.getpass("Enter your super user password: ")
+
+# Function to handle the commands
+def run_command(command, password):
+    process = subprocess.Popen(command, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+    # Send the password to the command
+    stdout, stderr = process.communicate(input=(password + '\n').encode())
+
+    if process.returncode == 0:
+        return f"Success: {stdout.decode().strip()}", ""
+    else:
+        return "", f"Error: {stderr.decode().strip()}"
+
+# Function to contain all maintenance tasks
 def maintenance_tasks(password):
     # Define commands to retrieve necessary information for detailed output
     commands = {
@@ -38,7 +57,7 @@ def maintenance_tasks(password):
     }
 
     while True:
-        selection = show_menu()
+        selection = show_menu(commands, last_status_info)
         
         if 1 <= selection <= len(commands):
             command_key = list(commands.keys())[selection - 1]
@@ -58,3 +77,27 @@ def maintenance_tasks(password):
             break
         else:
             print("Wrong selection made")
+
+def show_menu(commands, last_status_info):  
+    menu_count = 0  
+    print(f"""
+{"-"*30}
+Please choose from the list:\n{"-"*30}\n""")
+    for key in commands:
+        menu_count += 1
+        print(f"{menu_count}: {key.replace('_', ' ').capitalize()} - {commands[key]['details']}")
+    print(f"{menu_count + 1}: Quit")
+    print(f"{'-'*100}\nLast Command Run: {last_status_info['last_command'].capitalize() if last_status_info['last_command'] else 'None'}")
+    print(f"Last Command Status: {last_status_info['last_status']}\n")
+    
+    selection = int(input(f"Please select from the menu (1-{menu_count + 1}):\n"))
+    
+    return selection
+
+# Execute maintenance tasks
+if __name__ == "__main__":
+    try:
+        maintenance_tasks(password)
+    finally:
+        # Clear the password variable from memory
+        password = None  # Effectively "destroys" the password
