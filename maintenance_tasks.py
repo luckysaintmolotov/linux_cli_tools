@@ -1,6 +1,5 @@
 import subprocess
 import getpass
-import re
 
 # Get user password
 password = getpass.getpass("Enter your super user password: ")
@@ -8,68 +7,80 @@ password = getpass.getpass("Enter your super user password: ")
 # Function to handle the commands
 def run_command(command, password):
     process = subprocess.Popen(command, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    stdout, stderr = process.communicate(input=password.encode())
-    return stdout.decode(), stderr.decode()
+
+    # Send the password to the command
+    stdout, stderr = process.communicate(input=(password + '\n').encode())
+
+    if process.returncode == 0:
+        return f"Success: {stdout.decode().strip()}", ""
+    else:
+        return "", f"Error: {stderr.decode().strip()}"
 
 # Function to contain all maintenance tasks
 def maintenance_tasks(password):
     # Define commands to retrieve necessary information for detailed output
     commands = {
-        "update": ["sudo", "-S", "apt-get", "update"],
-        "upgrade": ["sudo", "-S", "apt-get", "upgrade", "-s"],  # Simulate upgrade to capture details
-        "autoclean": ["sudo", "-S", "apt-get", "autoclean"],
-        "autoremove": ["sudo", "-S", "apt-get", "autoremove", "-s"]  # Simulate removal to capture details
+        "update": {
+            "command": ["sudo", "-S", "apt-get", "update"],
+            "details": "Updates the package list from the repositories, ensuring the package index is up to date."
+        },
+        "upgrade": {
+            "command": ["sudo", "-S", "apt-get", "upgrade", "-s"],  # Simulate upgrade to capture details
+            "details": "Upgrades all installed packages to the latest versions available in the repositories (simulated)."
+        },
+        "autoclean": {
+            "command": ["sudo", "-S", "apt-get", "autoclean"],
+            "details": "Removes package files from the local repository that can no longer be downloaded (cleans up the package cache)."
+        },
+        "autoremove": {
+            "command": ["sudo", "-S", "apt-get", "autoremove", "-s"],  # Simulate removal to capture details
+            "details": "Removes packages that were automatically installed to satisfy dependencies for other packages and are now no longer needed (simulated)."
+        }
     }
 
-    # Update task
-    print("Starting 'update'...")
-    update_stdout, update_stderr = run_command(commands["update"], password)
-    if update_stderr:
-        print(f"Error while running 'update':")
-        print(update_stderr)
-    else:
-        print("Finished 'update'.")
-        # Capture the number of updates pending
-        pending_updates = re.search(r'(\d+) upgraded', update_stdout)
-        if pending_updates:
-            print(f"You have {pending_updates.group(1)} updates pending.")
-        else:
-            print("No updates pending.")
+    # Store the last command and status in a dictionary
+    last_status_info = {
+        "last_command": "",
+        "last_status": "N/A"
+    }
 
-    # Upgrade task
-    print("Starting 'upgrade'...")
-    upgrade_stdout, upgrade_stderr = run_command(commands["upgrade"], password)
-    if upgrade_stderr:
-        print(f"Error while running 'upgrade':")
-        print(upgrade_stderr)
-    else:
-        print("Finished 'upgrade'.")
-        # Capture the size of upgrades
-        upgraded_packages = re.search(r'(\d+) upgraded', upgrade_stdout)
-        size_match = re.search(r'Total upgrade size: (\d+ \w+)', upgrade_stdout)
+    while True:
+        def show_menu():  
+            menu_count = 0  
+            print(f"""
+{"-"*30}
+Please choose from the list:\n{"-"*30}\n""")
+            for key in commands:
+                menu_count += 1
+                print(f"{menu_count}: {key.capitalize()} - {commands[key]['details']}")
+            print(f"{menu_count + 1}: Quit")
+            print(f"{'-'*100}\nLast Command Run: {last_status_info['last_command'].capitalize() if last_status_info['last_command'] else 'None'}")
+            print(f"Last Command Status: {last_status_info['last_status']}\n")
+            
+            selection = int(input(f"Please select from the menu (1-{menu_count + 1}):\n"))
+            
+            return selection
         
-        if upgraded_packages and size_match:
-            print(f"Total upgrades: {upgraded_packages.group(1)} packages, size {size_match.group(1)}.")
+        selection = show_menu()
+        
+        if 1 <= selection <= len(commands):
+            command_key = list(commands.keys())[selection - 1]
+            print(f"\nRunning command: {command_key.capitalize()}...")
+            success_msg, error_msg = run_command(commands[command_key]['command'], password)
+
+            if success_msg:
+                print(success_msg)
+                last_status_info['last_command'] = command_key
+                last_status_info['last_status'] = "Success"
+            if error_msg:
+                print(error_msg)
+                last_status_info['last_command'] = command_key
+                last_status_info['last_status'] = "Failure"
+        elif selection == len(commands) + 1:
+            print("Exiting the maintenance tool. Goodbye!")
+            break
         else:
-            print("No upgrades available or no packages to upgrade.")
-
-    # Autoclean task
-    print("Starting 'autoclean'...")
-    autoclean_stdout, autoclean_stderr = run_command(commands["autoclean"], password)
-    if autoclean_stderr:
-        print(f"Error while running 'autoclean':")
-        print(autoclean_stderr)
-    else:
-        print("Finished 'autoclean'.")
-
-    # Autoremove task
-    print("Starting 'autoremove'...")
-    autoremove_stdout, autoremove_stderr = run_command(commands["autoremove"], password)
-    if autoremove_stderr:
-        print(f"Error while running 'autoremove':")
-        print(autoremove_stderr)
-    else:
-        print("Finished 'autoremove'.")
+            print("Wrong selection made")          
 
 # Execute maintenance tasks
 if __name__ == "__main__":
