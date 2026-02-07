@@ -1,11 +1,12 @@
 import subprocess
 import getpass
+import time
 
 # Get user password
-password = getpass.getpass("Enter your super user password: ")
 
 # Function to handle the commands
 def run_command(command, password):
+    
     process = subprocess.Popen(command, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
     # Send the password to the command
@@ -17,7 +18,9 @@ def run_command(command, password):
         return "", f"Error: {stderr.decode().strip()}"
 
 # Function to contain all maintenance tasks
-def maintenance_tasks(password):
+def maintenance_tasks():
+    password = getpass.getpass("Enter your super user password: ")
+    
     # Define commands to retrieve necessary information for detailed output
     commands = {
         "update": {
@@ -68,10 +71,12 @@ def maintenance_tasks(password):
                 print(success_msg)
                 last_status_info['last_command'] = command_key
                 last_status_info['last_status'] = "Success"
+                time.sleep(5)
             if error_msg:
                 print(error_msg)
                 last_status_info['last_command'] = command_key
                 last_status_info['last_status'] = "Failure"
+                time.sleep(5)
         elif selection == len(commands) + 1:
             print("Exiting the maintenance tool. Goodbye!")
             break
@@ -97,7 +102,7 @@ Please choose from the list:\n{"-"*30}\n""")
 # Execute maintenance tasks
 if __name__ == "__main__":
     try:
-        maintenance_tasks(password)
+        maintenance_tasks()
     finally:
         # Clear the password variable from memory
         password = None  # Effectively "destroys" the password
