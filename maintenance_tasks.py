@@ -1,7 +1,7 @@
 import subprocess
 import getpass
 import time
-
+from utilities import typewriter_effect as typewriter
 # Get user password
 
 # Function to handle the commands
@@ -16,6 +16,21 @@ def run_command(command, password):
         return f"Success: {stdout.decode().strip()}", ""
     else:
         return "", f"Error: {stderr.decode().strip()}"
+def show_menu(commands, last_status_info):  
+    menu_count = 0  
+    typewriter(f"""
+{"-"*30}
+Please choose from the list:\n{"-"*30}\n""")
+    for key in commands:
+        menu_count += 1
+        print(f"{menu_count}: {key.replace('_', ' ').capitalize()} - {commands[key]['details']}")
+    typewriter(f"{menu_count + 1}: Quit")
+    typewriter(f"{'-'*100}\nLast Command Run: {last_status_info['last_command'].capitalize() if last_status_info['last_command'] else 'None'}")
+    typewriter(f"Last Command Status: {last_status_info['last_status']}\n")
+    
+    selection = int(input(f"Please select from the menu (1-{menu_count + 1}):\n"))
+    
+    return selection
 
 # Function to contain all maintenance tasks
 def maintenance_tasks():
@@ -64,40 +79,25 @@ def maintenance_tasks():
         
         if 1 <= selection <= len(commands):
             command_key = list(commands.keys())[selection - 1]
-            print(f"\nRunning command: {command_key.replace('_', ' ').capitalize()}...")
+            typewriter(f"\nRunning command: {command_key.replace('_', ' ').capitalize()}...")
             success_msg, error_msg = run_command(commands[command_key]['command'], password)
 
             if success_msg:
-                print(success_msg)
+                typewriter(success_msg)
                 last_status_info['last_command'] = command_key
                 last_status_info['last_status'] = "Success"
                 time.sleep(5)
             if error_msg:
-                print(error_msg)
+                typewriter(error_msg)
                 last_status_info['last_command'] = command_key
                 last_status_info['last_status'] = "Failure"
                 time.sleep(5)
         elif selection == len(commands) + 1:
-            print("Exiting the maintenance tool. Goodbye!")
+            typewriter("Exiting the maintenance tool. Goodbye!")
             break
         else:
-            print("Wrong selection made")
+            typewriter("Wrong selection made")
 
-def show_menu(commands, last_status_info):  
-    menu_count = 0  
-    print(f"""
-{"-"*30}
-Please choose from the list:\n{"-"*30}\n""")
-    for key in commands:
-        menu_count += 1
-        print(f"{menu_count}: {key.replace('_', ' ').capitalize()} - {commands[key]['details']}")
-    print(f"{menu_count + 1}: Quit")
-    print(f"{'-'*100}\nLast Command Run: {last_status_info['last_command'].capitalize() if last_status_info['last_command'] else 'None'}")
-    print(f"Last Command Status: {last_status_info['last_status']}\n")
-    
-    selection = int(input(f"Please select from the menu (1-{menu_count + 1}):\n"))
-    
-    return selection
 
 # Execute maintenance tasks
 if __name__ == "__main__":
