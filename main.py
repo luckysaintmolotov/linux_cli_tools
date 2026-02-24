@@ -1,5 +1,6 @@
 import maintenance_tasks as maintenance
 import random
+import software
 from utilities import typewriter_effect, create_menu_table
 
 # List of themed quotes
@@ -24,33 +25,36 @@ quotes = [
 def display_menu():
     options = {
         "1": "Maintenance Tasks",
-        "2": "Quit"
+        "2": "Software Management",
+        "Q": "Quit"
     }
 
     # Create the menu table
     menu_table = create_menu_table(options)
     
     typewriter_effect("\n" + "=" * 50)
-    typewriter_effect("        Welcome to Nihility System Tweaks")
+    typewriter_effect("        Welcome to a Linux CLI System Tweak Manager")
     typewriter_effect("=" * 50)
     typewriter_effect(f"\"{random.choice(quotes)}\"")
     typewriter_effect("=" * 50)
-    print(menu_table)
+    typewriter_effect(menu_table)
     typewriter_effect("=" * 50)
 
 def main():
     while True:
         display_menu()
 
-        selection = int(input("Select an option (1-2):\n"))
-        
-        if selection == 1:
-            # Placeholder for actual function call
-            typewriter_effect(f"Running Nihility System Tweaks")
-            maintenance.maintenance_tasks()
-        elif selection == 2:
-            typewriter_effect("Thank you for using Nihility System Tweaks. Goodbye!")
+        selection = (input("Select an option (1-q):\n"))
+        if selection == "q":
+            typewriter_effect("Thank you. Goodbye!")
             break
+        if int(selection) == 1:
+            # Placeholder for actual function call
+            typewriter_effect(f"Loading Maintenance Tasks")
+            maintenance.maintenance_tasks()
+        elif int(selection) == 2:
+            typewriter_effect("Loading Software Menu")
+            software.show_menu()
         else:
             typewriter_effect("Invalid selection. Please try again.")
 
